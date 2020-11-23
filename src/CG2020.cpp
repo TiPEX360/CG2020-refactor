@@ -7,17 +7,9 @@
 #define WIDTH 320
 #define HEIGHT 240
 
-void draw(DrawingWindow &window) {
+void draw(DrawingWindow &window, Uint32 deltaTime) {
 	window.clearPixels();
-	for (size_t y = 0; y < window.height; y++) {
-		for (size_t x = 0; x < window.width; x++) {
-			float red = rand() % 256;
-			float green = 0.0;
-			float blue = 0.0;
-			uint32_t colour = (255 << 24) + (int(red) << 16) + (int(green) << 8) + int(blue);
-			window.setPixelColour(x, y, colour);
-		}
-	}
+	std::cout << deltaTime << std::endl;
 }
 
 void update(DrawingWindow &window) {
@@ -36,12 +28,21 @@ void handleEvent(SDL_Event event, DrawingWindow &window) {
 int main(int argc, char *argv[]) {
 	DrawingWindow window = DrawingWindow(WIDTH, HEIGHT, false);
 	SDL_Event event;
+
+	//Tick
+	Uint32 prevTime = SDL_GetTicks();
 	while (true) {
-		// We MUST poll for events - otherwise the window will freeze !
+		Uint32 deltaTime = SDL_GetTicks() - prevTime;
+		prevTime += deltaTime;
+
+		//Handle events
 		if (window.pollForInputEvents(event)) handleEvent(event, window);
+		
+		//Update scene
 		update(window);
-		draw(window);
-		// Need to render the frame at the end, or nothing actually gets shown on the screen !
+
+		//Draw frame
+		draw(window, deltaTime);
 		window.renderFrame();
 	}
 }
