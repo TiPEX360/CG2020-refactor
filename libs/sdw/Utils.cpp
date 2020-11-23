@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <sstream>
 #include "Utils.h"
+#include <string>
 
 std::vector<std::string> split(const std::string &line, char delimiter) {
 	auto haystack = line;
@@ -15,7 +16,7 @@ std::vector<std::string> split(const std::string &line, char delimiter) {
 	return tokens;
 }
 
-std::vector<ModelTriangle> loadObj(string path, float scale) {
+std::vector<ModelTriangle> loadObj(std::string path, float scale) {
 	std::ifstream file(path, std::ifstream::in);
 	std::string line;
 	
@@ -35,11 +36,11 @@ std::vector<ModelTriangle> loadObj(string path, float scale) {
 		else if(tokens[0].compare("usemtl") == 0) material = loadMaterial(tokens[1], mtlPath);
 		else if(tokens[0].compare("v") == 0) vertices.push_back(scale * glm::vec3(stof(tokens[1]), stof(tokens[2]), stof(tokens[3])));
 		else if(tokens[0].compare("vt") == 0) texturePoints.push_back(TexturePoint(stof(tokens[1]), stof(tokens[2])));
-		else if(tokens[0].compare("vn") == 0) textureNormals.push_back(glm::vec3(stof(tokens[1]), stof(tokens[2]), stof(tokens[3])));
+		else if(tokens[0].compare("vn") == 0) vertexNormals.push_back(glm::vec3(stof(tokens[1]), stof(tokens[2]), stof(tokens[3])));
 		else if(tokens[0].compare("f") == 0) {
 			std::array<glm::vec3, 3> trianglePoints;
 			std::array<TexturePoint, 3> selectedTexturePoints;
-			std::array>glm::vec3, 3> selectedVertexNormals;
+			std::array<glm::vec3, 3> selectedVertexNormals;
 			for(int i = 1; i < 4; i++) {
 				std::vector<std::string> subTokens = split(tokens[i], '/');
 				//TrianglePoint
@@ -62,12 +63,13 @@ std::vector<ModelTriangle> loadObj(string path, float scale) {
 			glm::vec3 e1 = triangle.vertices[2] - triangle.vertices[0];
 			triangle.normal = glm::normalize(glm::cross(e0, e1));
 			
-			pairs.push_back(std::pair<ModelTriangle,Material>(triangle,material));
+			triangles.push_back(triangle);
 		}
+	}
 }
 
-Material loadMtl(string mtlName, string path) {
-	std::ifstream in(mtlPath, std::ifstream::in);
+Material loadMaterial(std::string mtlName, std::string path) {
+	std::ifstream in(path, std::ifstream::in);
 	std::string line;
 	glm::vec3 colour;
 	std::string texturePath;
