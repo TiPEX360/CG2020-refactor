@@ -1,8 +1,10 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 class Camera {
 private:
 public: 
-    std::vec3 camera;
+    glm::vec3 camera;
     Camera();
 };

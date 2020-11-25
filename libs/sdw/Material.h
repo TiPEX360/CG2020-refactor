@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Colour.h"
-#include "TextureMap.h"
 
 class Material {
 public:

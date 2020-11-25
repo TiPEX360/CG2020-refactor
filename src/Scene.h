@@ -10,6 +10,6 @@ public:
     Camera camera;
     std::vector<ModelTriangle> triangles;
     Scene();
-    Scene(Camera c, string objPath);
+    Scene(Camera c, std::string objPath);
 private:
 };
