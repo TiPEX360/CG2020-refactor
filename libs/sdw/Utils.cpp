@@ -86,9 +86,7 @@ Material loadMaterial(std::string mtlName, std::string path) {
     while(!found && !in.eof()) {
 	    std::getline(in, line);
         std::vector<std::string> tokens = split(line, ' ');
-        if(tokens[0].compare("newmtl") == 0 && tokens[1].compare(mtlName) == 0) {
-            found = true;
-        }
+        if(tokens[0].compare("newmtl") == 0 && tokens[1].compare(mtlName) == 0) found = true;
     }
     found = false;
 	while(!in.eof() && !found) {
@@ -97,15 +95,54 @@ Material loadMaterial(std::string mtlName, std::string path) {
         if(tokens[0].compare("Kd") == 0) {
             colour = glm::vec3(0xFF*stof(tokens[1]), 0xFF*stof(tokens[2]), 0xFF*stof(tokens[3]));
         }
-		if(tokens[0].compare("map_Kd") == 0) {
-			texturePath = tokens[1];
-		}
-		if(tokens[0].compare("newmtl") == 0) {
-			found = true;
-		}
+		if(tokens[0].compare("map_Kd") == 0) texturePath = tokens[1];
+		if(tokens[0].compare("newmtl") == 0) found = true;
     }
 	Material material = Material(Colour(colour.r, colour.g, colour.b), texturePath);
     in.close();
     return material;
 
+}
+
+std::vector<float> interpolateSingleFloats(float from, float to, int numberOfValues) {
+	std::vector<float> values(numberOfValues);
+	float interval = (to - from) / (numberOfValues - 1);
+	for(int i = 0; i < numberOfValues; i++) values[i] = from + i*interval;
+	return values;
+}
+
+std::vector<glm::vec3> interpolateVector(glm::vec3 from, glm::vec3 to, int numberOfValues) {
+	std::vector<glm::vec3> values(numberOfValues);
+	glm::vec3 intervals = (to - from) / (float)(numberOfValues - 1);
+	for(int i = 0; i < numberOfValues; i++) values[i] = from + (float)i*intervals;
+	return values;
+}
+
+std::vector<glm::vec2> interpolateVector(glm::vec2 from, glm::vec2 to, int numberOfValues) {
+	std::vector<glm::vec2> values(numberOfValues);
+	glm::vec2 intervals = (to - from) / (float)(numberOfValues - 1);
+	for(int i = 0; i < numberOfValues; i++) values[i] = from + (float)i*intervals;
+	return values;
+}
+
+std::vector<CanvasPoint> interpolateVector(CanvasPoint from, CanvasPoint to, int numberOfValues) {
+	std::vector<CanvasPoint> values(numberOfValues);
+	glm::vec3 intervals = (glm::vec3(to.x,to.y,to.depth) - glm::vec3(from.x,from.y,from.depth)) / (float)(numberOfValues);
+	for(int i = 0; i < numberOfValues; i++) {
+		glm::vec3 result = glm::vec3(from.x, from.y, from.depth) + (float)i*intervals;
+		if(glm::isnan(result.x)) {
+			std::cout << "nan intervals: " << intervals.x << " num: " << numberOfValues << " to.x: "<< to.x << " from.x: " << from.x << std::endl;
+			std::cout << "from.y: " << from.y << " to.y: " << to.y << std::endl;
+		}
+		values[i] = CanvasPoint(result.x,result.y, result.z);
+	} 		
+	return values;
+}
+
+uint32_t colourPack(Colour colour, int alpha) {
+	return (alpha << 24) + (colour.red << 16) + (colour.green << 8) + colour.blue;
+}
+
+uint32_t colourPack(glm::vec3 colour, int alpha) {
+	return (alpha << 24) + ((int)colour.r << 16) + ((int)colour.g << 8) + (int)colour.b;
 }

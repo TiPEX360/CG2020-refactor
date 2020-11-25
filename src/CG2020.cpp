@@ -5,6 +5,8 @@
 #include <vector>
 #include "Camera.h"
 #include "Scene.h"
+#include "Rasterizer.h"
+#include "Renderer.h"
 
 #define WIDTH 640
 #define HEIGHT 480
@@ -12,7 +14,7 @@
 void draw(DrawingWindow &window, Scene scene) {
 	window.clearPixels();
 	
-	
+
 }
 
 void update(DrawingWindow &window, Uint32 deltaTime, Scene scene) {
@@ -33,9 +35,8 @@ int main(int argc, char *argv[]) {
 	SDL_Event event;
 
 	//Scene setup
-	
 	Scene scene(Camera(glm::vec3(0.0f, 0.0f, 2.0f), glm::mat3(1.0f), 2.0f), "cornell.obj", 0.17f);
-
+	Renderer r = Rasterizer(window, &scene);
 	//Tick
 	Uint32 prevTime = SDL_GetTicks();
 	while (true) {
