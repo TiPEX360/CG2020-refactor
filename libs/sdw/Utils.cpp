@@ -2,6 +2,8 @@
 #include <sstream>
 #include "Utils.h"
 #include <string>
+#include <fstream>
+#include <map>
 
 std::vector<std::string> split(const std::string &line, char delimiter) {
 	auto haystack = line;
@@ -23,10 +25,11 @@ std::vector<ModelTriangle> loadObj(std::string path, float scale) {
 	std::vector<ModelTriangle> triangles;
 	std::vector<glm::vec3> vertices;
 	std::vector<TexturePoint> texturePoints;
-	std::vector<glm::vec3> vertexNormals;
+	// std::vector<glm::vec3> vertexNormals;
 	Material material;
 	std::string mtlPath;
 
+	std::map<glm::vec3*, glm::vec3> vertexNormals; //WARNING pointer here may not work :/
 
 	while(!file.eof()) {
 		std::getline(file, line);
@@ -36,7 +39,8 @@ std::vector<ModelTriangle> loadObj(std::string path, float scale) {
 		else if(tokens[0].compare("usemtl") == 0) material = loadMaterial(tokens[1], mtlPath);
 		else if(tokens[0].compare("v") == 0) vertices.push_back(scale * glm::vec3(stof(tokens[1]), stof(tokens[2]), stof(tokens[3])));
 		else if(tokens[0].compare("vt") == 0) texturePoints.push_back(TexturePoint(stof(tokens[1]), stof(tokens[2])));
-		else if(tokens[0].compare("vn") == 0) vertexNormals.push_back(glm::vec3(stof(tokens[1]), stof(tokens[2]), stof(tokens[3])));
+		else if(tokens[0].compare("vn") == 0) vertexNormals.insert({&(vertices[vertices.size()- 1]), glm::vec3(stof(tokens[1]), stof(tokens[2]), stof(tokens[3]))});
+		// else if(tokens[0].compare("vn") == 0) vertexNormals.push_back(glm::vec3(stof(tokens[1]), stof(tokens[2]), stof(tokens[3])));
 		else if(tokens[0].compare("f") == 0) {
 			std::array<glm::vec3, 3> trianglePoints;
 			std::array<TexturePoint, 3> selectedTexturePoints;
@@ -46,10 +50,11 @@ std::vector<ModelTriangle> loadObj(std::string path, float scale) {
 				//TrianglePoint
 				trianglePoints[i - 1] = vertices[stoi(subTokens[0]) - 1];
 				//VertexNormal
-				selectedVertexNormals[i - 1] = vertexNormals[stoi(subTokens[0]) - 1];
+				std::map<glm::vec3*, glm::vec3>::iterator it = vertexNormals.find(&(vertices[stoi(subTokens[0]) - 1]));
+				if(it != vertexNormals.end()) selectedVertexNormals[i - 1] = it->second;
 				//TexturePoint
 				if(subTokens[1].compare("\0") != 0) {
-					selectedTexturePoints[i - 1] = texturePoints[stoi(subTokens[1]) - 1];
+					selectedTexturePoints[i - 1] = texturePoints[stoi(subTokens[0]) - 1];
 				}
 			}
 
@@ -58,7 +63,7 @@ std::vector<ModelTriangle> loadObj(std::string path, float scale) {
 			triangle.texturePoints = selectedTexturePoints;
 			triangle.colour = material.colour;
 			triangle.material = material;
-			triangle.vertexNormals = selectedVertexNormals; //////Need to check this lol
+			triangle.vertexNormals = selectedVertexNormals;
 			glm::vec3 e0 = triangle.vertices[1] - triangle.vertices[0];
 			glm::vec3 e1 = triangle.vertices[2] - triangle.vertices[0];
 			triangle.normal = glm::normalize(glm::cross(e0, e1));
@@ -66,6 +71,9 @@ std::vector<ModelTriangle> loadObj(std::string path, float scale) {
 			triangles.push_back(triangle);
 		}
 	}
+	file.close();
+
+	return triangles;
 }
 
 Material loadMaterial(std::string mtlName, std::string path) {

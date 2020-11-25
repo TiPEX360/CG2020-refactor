@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <string>
-#include <Utils.h>
+#include "Utils.h"
 #include "Camera.h"
 
 class Scene {
@@ -10,6 +10,6 @@ public:
     Camera camera;
     std::vector<ModelTriangle> triangles;
     Scene();
-    Scene(Camera c, std::string objPath);
+    Scene(Camera camera, std::string objPath, float scale);
 private:
 };
